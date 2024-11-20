@@ -1,16 +1,17 @@
 import express from "express";
 import mongoose from "mongoose";
+import {Request, Response} from "express"
 import jwt from "jsonwebtoken";
 import {UserModel, ContentModel} from "./db";
 import {z} from "zod";
 import bcrypt from "bcrypt";
-import { auth } from "./middleware";
+import {auth} from "./middleware";
 import config from './config'
 
 const app=express();
 app.use(express.json());
 
-app.post("/api/v1/signup", async(req, res)=>{
+app.post("/api/v1/signup", async(req: Request, res: Response)=>{
 
     const reqUserBody=z.object({
         // email: z.string().min(6).max(100).email("Invalid Email Addresss"),
@@ -45,7 +46,7 @@ app.post("/api/v1/signup", async(req, res)=>{
     }
 })
 
-app.post("/api/v1/signin", async(req, res)=>{
+app.post("/api/v1/signin", async(req: Request, res: Response)=>{
     const username=req.body.username;
     const password=req.body.password;
     const existingUser=await UserModel.findOne({
@@ -61,29 +62,64 @@ app.post("/api/v1/signin", async(req, res)=>{
                     id: existingUser._id
                 }, config.SECRET_KEY)
                 res.json({
-                    message: "User signed in"
+                    message: "User signed in",
+                    token: token
+                })
+            }else{
+                res.status(411).json({
+                    message: "Incorrect credentials"
                 })
             }
         }catch(e){
-            
+            console.log("Error comparing passwords", e);
         }
     }else{
-        res.json({
-
+        res.json({  
+            message: "Error in signin"
         })
     }
     
 })
-
-app.post("/api/v1/content", (req, res)=>{
-    
+app.post("/api/v1/content", auth, async(req: Request, res: Response)=>{
+    const { link, type, title } = req.body;
+    try{
+        await ContentModel.create({
+            link,
+            type, 
+            title,
+            userId: (req as any).userId,
+            tags: []
+        })
+        res.json({
+            message: "Content  Added"
+        })
+    }catch(e){
+        console.log("Error creating content");
+        res.json({
+            message: "Content Server Error"
+        })
+    }
 })
 
-app.get("/api/v1/content", (req, res)=>{
-    
+app.get("/api/v1/content",  auth, async(req:Request, res: Response)=>{
+    //@ts-ignore
+    const userId=req.userId;
+    try{
+        const content=await ContentModel.find({
+            userId: userId
+        }).populate("userId", "username")
+        res.json({
+            content
+        })
+    }catch(e){
+        console.log("Error getting Content", e);
+        res.json({
+            message: "Server Error: Getting Content "
+        })
+    }
 })
 
-app.delete("/api/v1/content", (req, res)=>{
+app.delete("/api/v1/content", auth,async(req: Request, res: Response)=>{
     
 })
 
