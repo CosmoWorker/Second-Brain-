@@ -51,6 +51,6 @@ type tLink={
 const linkSchema=new Schema<tLink>({
     hash: {type: String, required: true},
     userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true}
-})
+},{timestamps: true})
 
 export const LinkModel=mongoose.model("Link", linkSchema);

@@ -2,7 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import {Request, Response} from "express"
 import jwt from "jsonwebtoken";
-import {UserModel, ContentModel} from "./db";
+import {UserModel, ContentModel, LinkModel} from "./db";
 import {z} from "zod";
 import bcrypt from "bcrypt";
 import {auth} from "./middleware";
@@ -15,8 +15,8 @@ app.post("/api/v1/signup", async(req: Request, res: Response)=>{
 
     const reqUserBody=z.object({
         // email: z.string().min(6).max(100).email("Invalid Email Addresss"),
-        username: z.string().min(3, "Name must be valid"),
-        password: z.string().min(6, "Must be atleast 6 characters")
+        username: z.string().min(3, "username must be atleast 3 characters").max(10, "username cannot be more than 10 characters"),
+        password: z.string().min(8, "Must be atleast 6 characters").max(20, "Password cannot be more than 20 characters")
                     .regex(/[A-Z]/, {message: "Password must contain atleast 1 uppercase character"})
                     .regex(/[\W_]/, {message: "Password must contain atleast 1 special character"})
     })
@@ -102,8 +102,7 @@ app.post("/api/v1/content", auth, async(req: Request, res: Response)=>{
 })
 
 app.get("/api/v1/content",  auth, async(req:Request, res: Response)=>{
-    //@ts-ignore
-    const userId=req.userId;
+    const userId=(req as any).userId;
     try{
         const content=await ContentModel.find({
             userId: userId
@@ -114,20 +113,50 @@ app.get("/api/v1/content",  auth, async(req:Request, res: Response)=>{
     }catch(e){
         console.log("Error getting Content", e);
         res.json({
-            message: "Server Error: Getting Content "
+            message: "Server Error: Getting Content"
         })
     }
 })
 
-app.delete("/api/v1/content", auth,async(req: Request, res: Response)=>{
-    
+app.delete("/api/v1/content", auth, async(req: Request, res: Response)=>{
+    const contentId=req.body.contentId;
+    const userId=(req as any).userId;
+    try{
+        const content=await ContentModel.findById(contentId)
+        if (!content||content.userId.toString()===userId){
+            await ContentModel.deleteMany({
+                contentId,
+            })
+            res.json({
+                message: "Deleted!"
+            })
+        }else{
+            res.status(403).json({
+                message: "Cannot Delete"
+            })
+        }
+    }catch(e){
+        console.log("Error deleting", e);
+        res.json({
+            message: "Server Delete Error"
+        })
+    }
 })
 
-app.post("/api/v1/brain/share", (req, res)=>{
-    
+app.post("/api/v1/brain/share", auth, async(req: Request, res: Response)=>{
+    const share =req.body.share;
+
+    try{
+        const shareBrain=await LinkModel.findById({});
+    }catch(e){
+        console.log("Error while Sharing", e);
+        res.json({
+            message: "Server Share Error"
+        })
+    }
 })
 
-app.get("/api/v1/brain/:shareLink", (req, res)=>{
+app.get("/api/v1/brain/:shareLink", async(req: Request, res: Response)=>{
     
 })
 
