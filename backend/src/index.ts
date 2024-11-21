@@ -122,17 +122,18 @@ app.delete("/api/v1/content", auth, async(req: Request, res: Response)=>{
     const contentId=req.body.contentId;
     const userId=(req as any).userId;
     try{
-        const content=await ContentModel.findById(contentId)
-        if (!content||content.userId.toString()===userId){
-            await ContentModel.deleteMany({
-                contentId,
-            })
-            res.json({
-                message: "Deleted!"
+        const content=await ContentModel.findOneAndDelete({
+            _id: contentId,
+            userId: userId,
+        })
+        
+        if (!content){
+            res.status(403).json({
+                message: "Cannot Delete, Content not found or unauthorized"
             })
         }else{
-            res.status(403).json({
-                message: "Cannot Delete"
+            res.json({
+                message: "Deleted!"
             })
         }
     }catch(e){
@@ -144,16 +145,32 @@ app.delete("/api/v1/content", auth, async(req: Request, res: Response)=>{
 })
 
 app.post("/api/v1/brain/share", auth, async(req: Request, res: Response)=>{
-    const share =req.body.share;
-
+    const userId=(req as any).userId
+    const contentId=req.body.contentId;
     try{
-        const shareBrain=await LinkModel.findById({});
-    }catch(e){
-        console.log("Error while Sharing", e);
-        res.json({
-            message: "Server Share Error"
+        const content=await ContentModel.findById({
+            userId: userId
         })
+        if (!content){
+            res.status(411).json({
+                message: "Content Not found or unauthorized"
+            })
+        }else{
+            let isLink=await LinkModel.findOne({
+                userId: userId,
+            })
+            if (!isLink){
+                isLink=await LinkModel.create({
+                    hash: 
+                    userId: userId,
+                })
+            }
+        }
+    }catch(e){
+
     }
+
+    
 })
 
 app.get("/api/v1/brain/:shareLink", async(req: Request, res: Response)=>{

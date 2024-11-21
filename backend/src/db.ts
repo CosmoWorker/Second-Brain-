@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
 import config from "./config";
+import { boolean } from "zod";
 mongoose.connect(config.DB_URL);
 
 export type tUser={
@@ -46,11 +47,13 @@ export const ContentModel=mongoose.model("Content", contentSchema);
 type tLink={
     hash: string;
     userId: mongoose.Types.ObjectId;
+    // share: boolean;
 }
 
 const linkSchema=new Schema<tLink>({
     hash: {type: String, required: true},
-    userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true}
-},{timestamps: true})
+    userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
+    // share: {type: Boolean, default: false}
+})
 
 export const LinkModel=mongoose.model("Link", linkSchema);
