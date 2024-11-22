@@ -6,7 +6,7 @@ type config={
 
 const config: config={
     PORT: 3000,
-    DB_URL: "mongodb+srv://admin:0123@vt-cluster.kw8dq.mongodb.net/",
+    DB_URL: "mongodb+srv://admin:0123@vt-cluster.kw8dq.mongodb.net/second-brain",
     SECRET_KEY: "2brain!"
 }
 

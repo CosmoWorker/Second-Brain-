@@ -52,7 +52,7 @@ type tLink={
 
 const linkSchema=new Schema<tLink>({
     hash: {type: String, required: true},
-    userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
+    userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
     // share: {type: Boolean, default: false}
 })
 

@@ -1,10 +1,10 @@
 import express from "express";
-import mongoose from "mongoose";
+import mongoose, { Connection } from "mongoose";
 import {Request, Response} from "express"
 import jwt from "jsonwebtoken";
 import {UserModel, ContentModel, LinkModel} from "./db";
 import {z} from "zod";
-import bcrypt from "bcrypt";
+import bcrypt, { hash } from "bcrypt";
 import {auth} from "./middleware";
 import config from './config'
 
@@ -146,7 +146,6 @@ app.delete("/api/v1/content", auth, async(req: Request, res: Response)=>{
 
 app.post("/api/v1/brain/share", auth, async(req: Request, res: Response)=>{
     const userId=(req as any).userId
-    const contentId=req.body.contentId;
     try{
         const content=await ContentModel.findById({
             userId: userId
@@ -155,26 +154,54 @@ app.post("/api/v1/brain/share", auth, async(req: Request, res: Response)=>{
             res.status(411).json({
                 message: "Content Not found or unauthorized"
             })
+            return ;
         }else{
             let isLink=await LinkModel.findOne({
                 userId: userId,
             })
             if (!isLink){
+                const hash=await bcrypt.hash(userId, 4);
                 isLink=await LinkModel.create({
-                    hash: 
+                    hash: hash,
                     userId: userId,
                 })
+                return;
             }
+            res.json({
+                message:"Shareable link created",
+                link: `http://localhost:${config.PORT}/api/v1/brain/${isLink.hash}`
+            })
         }
     }catch(e){
-
+        console.log("Error creating Link", e);
+        res.json({
+            message: "Server Error Creating Link"
+        })
     }
-
-    
 })
 
 app.get("/api/v1/brain/:shareLink", async(req: Request, res: Response)=>{
-    
+    const shareLink=req.params.link;
+    try{
+        const link=await LinkModel.findOne({ hash: shareLink }).populate("userId", "username");
+        if (!link){
+            res.json({
+                message: "Invalid or Unauthorized"
+            })
+            return;
+        }
+        const content=await ContentModel.find({userId: link.userId});
+        res.json({
+            username: link.userId,
+            content
+        })
+
+    }catch(e){
+        console.log("Error accessing Link Content", e);
+        res.json({
+            message: "Server Error accessing Link Content"
+        })
+    }
 })
 
-app.listen(3000);
+app.listen(config.PORT);
