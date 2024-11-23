@@ -1,10 +1,10 @@
 import express from "express";
-import mongoose, { Connection } from "mongoose";
+import mongoose from "mongoose";
 import {Request, Response} from "express"
 import jwt from "jsonwebtoken";
 import {UserModel, ContentModel, LinkModel} from "./db";
 import {z} from "zod";
-import bcrypt, { hash } from "bcrypt";
+import bcrypt from "bcrypt";
 import {auth} from "./middleware";
 import config from './config'
 
@@ -112,7 +112,7 @@ app.get("/api/v1/content",  auth, async(req:Request, res: Response)=>{
         })
     }catch(e){
         console.log("Error getting Content", e);
-        res.json({
+        res.status(500).json({
             message: "Server Error: Getting Content"
         })
     }
@@ -138,7 +138,7 @@ app.delete("/api/v1/content", auth, async(req: Request, res: Response)=>{
         }
     }catch(e){
         console.log("Error deleting", e);
-        res.json({
+        res.status(500).json({
             message: "Server Delete Error"
         })
     }
@@ -146,9 +146,10 @@ app.delete("/api/v1/content", auth, async(req: Request, res: Response)=>{
 
 app.post("/api/v1/brain/share", auth, async(req: Request, res: Response)=>{
     const userId=(req as any).userId
+    const uidObject=new mongoose.Types.ObjectId(userId)
     try{
-        const content=await ContentModel.findById({
-            userId: userId
+        const content=await ContentModel.find({
+            userId: uidObject
         })
         if (!content){
             res.status(411).json({
@@ -174,7 +175,7 @@ app.post("/api/v1/brain/share", auth, async(req: Request, res: Response)=>{
         }
     }catch(e){
         console.log("Error creating Link", e);
-        res.json({
+        res.status(500).json({
             message: "Server Error Creating Link"
         })
     }
@@ -192,13 +193,13 @@ app.get("/api/v1/brain/:shareLink", async(req: Request, res: Response)=>{
         }
         const content=await ContentModel.find({userId: link.userId});
         res.json({
-            username: link.userId,
+            username: link,
             content
         })
 
     }catch(e){
         console.log("Error accessing Link Content", e);
-        res.json({
+        res.status(500).json({
             message: "Server Error accessing Link Content"
         })
     }
