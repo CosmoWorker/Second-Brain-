@@ -4,6 +4,7 @@ import {Request, Response} from "express"
 import jwt from "jsonwebtoken";
 import {UserModel, ContentModel, LinkModel} from "./db";
 import {z} from "zod";
+import { createHash } from 'crypto';
 import bcrypt from "bcrypt";
 import {auth} from "./middleware";
 import config from './config'
@@ -161,7 +162,7 @@ app.post("/api/v1/brain/share", auth, async(req: Request, res: Response)=>{
                 userId: userId,
             })
             if (!isLink){
-                const hash=await bcrypt.hash(userId, 4);
+                const hash=createHash('sha-256').update(userId).digest('hex');
                 isLink=await LinkModel.create({
                     hash: hash,
                     userId: userId,
@@ -182,7 +183,7 @@ app.post("/api/v1/brain/share", auth, async(req: Request, res: Response)=>{
 })
 
 app.get("/api/v1/brain/:shareLink", async(req: Request, res: Response)=>{
-    const shareLink=req.params.link;
+    const shareLink=req.params.shareLink;
     try{
         const link=await LinkModel.findOne({ hash: shareLink }).populate("userId", "username");
         if (!link){
@@ -193,7 +194,7 @@ app.get("/api/v1/brain/:shareLink", async(req: Request, res: Response)=>{
         }
         const content=await ContentModel.find({userId: link.userId});
         res.json({
-            username: link,
+            username: link.username,
             content
         })
 
