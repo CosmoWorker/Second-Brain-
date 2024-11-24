@@ -46,7 +46,7 @@ export const ContentModel=mongoose.model("Content", contentSchema);
 
 type tLink={
     hash: string;
-    userId: mongoose.Types.ObjectId;
+    userId: mongoose.Types.ObjectId | tUser;
     // share: boolean;
 }
 

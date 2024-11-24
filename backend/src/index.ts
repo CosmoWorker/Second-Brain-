@@ -2,7 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import {Request, Response} from "express"
 import jwt from "jsonwebtoken";
-import {UserModel, ContentModel, LinkModel} from "./db";
+import {UserModel, ContentModel, LinkModel, tUser} from "./db";
 import {z} from "zod";
 import { createHash } from 'crypto';
 import bcrypt from "bcrypt";
@@ -185,16 +185,17 @@ app.post("/api/v1/brain/share", auth, async(req: Request, res: Response)=>{
 app.get("/api/v1/brain/:shareLink", async(req: Request, res: Response)=>{
     const shareLink=req.params.shareLink;
     try{
-        const link=await LinkModel.findOne({ hash: shareLink }).populate("userId", "username");
+        const link=await LinkModel.findOne({ hash: shareLink }).populate("userId");
         if (!link){
             res.json({
                 message: "Invalid or Unauthorized"
             })
             return;
         }
+        const user=link.userId as tUser;
         const content=await ContentModel.find({userId: link.userId});
         res.json({
-            username: link.username,
+            username: user.username,
             content
         })
 
