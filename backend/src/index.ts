@@ -147,37 +147,45 @@ app.delete("/api/v1/content", auth, async(req: Request, res: Response)=>{
 
 app.post("/api/v1/brain/share", auth, async(req: Request, res: Response)=>{
     const userId=(req as any).userId
-    const uidObject=new mongoose.Types.ObjectId(userId)
+    const { share }=req.body;
     try{
-        const content=await ContentModel.find({
-            userId: uidObject
+        let isLink= await LinkModel.findOne({
+            userId: userId,
         })
-        if (!content){
-            res.status(411).json({
-                message: "Content Not found or unauthorized"
-            })
-            return ;
-        }else{
-            let isLink=await LinkModel.findOne({
-                userId: userId,
-            })
+        if (share){
             if (!isLink){
                 const hash=createHash('sha-256').update(userId).digest('hex');
                 isLink=await LinkModel.create({
                     hash: hash,
                     userId: userId,
+                    share: true,
                 })
                 return;
+            }else{
+                isLink.share=true;
+                await isLink.save()
             }
             res.json({
                 message:"Shareable link created",
                 link: `http://localhost:${config.PORT}/api/v1/brain/${isLink.hash}`
-            })
+            }) 
+        }else{
+            if (isLink){
+                isLink.share=false;
+                await isLink.save();
+                res.json({
+                    message: "Shareable Link Disabled"
+                })
+            }else{
+                res.status(411).json({
+                    message : "No shareable Link found"
+                })
+            }
         }
     }catch(e){
         console.log("Error creating Link", e);
         res.status(500).json({
-            message: "Server Error Creating Link"
+            message: "Server Error Creating/Updating Link"
         })
     }
 })
@@ -186,7 +194,7 @@ app.get("/api/v1/brain/:shareLink", async(req: Request, res: Response)=>{
     const shareLink=req.params.shareLink;
     try{
         const link=await LinkModel.findOne({ hash: shareLink }).populate("userId");
-        if (!link){
+        if (!link || !link.share){
             res.json({
                 message: "Invalid or Unauthorized"
             })
@@ -196,7 +204,7 @@ app.get("/api/v1/brain/:shareLink", async(req: Request, res: Response)=>{
         const content=await ContentModel.find({userId: link.userId});
         res.json({
             username: user.username,
-            content
+            content: content.length?content : []
         })
 
     }catch(e){
