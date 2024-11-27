@@ -1,8 +1,7 @@
 import express from "express";
-import mongoose from "mongoose";
 import {Request, Response} from "express"
 import jwt from "jsonwebtoken";
-import {UserModel, ContentModel, LinkModel, tUser} from "./db";
+import {UserModel, ContentModel, LinkModel, tUser, TagModel} from "./db";
 import {z} from "zod";
 import { createHash } from 'crypto';
 import bcrypt from "bcrypt";
@@ -81,15 +80,37 @@ app.post("/api/v1/signin", async(req: Request, res: Response)=>{
     }
     
 })
-app.post("/api/v1/content", auth, async(req: Request, res: Response)=>{
-    const { link, type, title } = req.body;
+
+app.get("api/v1/tags", auth, async(req: Request, res: Response)=>{
     try{
+        const tags=await TagModel.find().select("title")
+        res.json(tags)
+    }catch(e){
+        console.log("Error getting tags", e)
+        res.json({
+            message: "Tags Server Error"
+        })
+    }
+})
+
+app.post("/api/v1/content", auth, async(req: Request, res: Response)=>{
+    const { link, type, title, tags } = req.body;
+    try{
+        if (tags){
+            for (let tag of tags){
+                const existingTag=await TagModel.findOne({title: tag})
+                if (!existingTag){
+                    const newTag=new TagModel({title: tag})
+                    await newTag.save();
+                }
+            }
+        }
         await ContentModel.create({
             link,
             type, 
             title,
             userId: (req as any).userId,
-            tags: []
+            tags: tags
         })
         res.json({
             message: "Content  Added"

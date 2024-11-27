@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
 import config from "./config";
-import { boolean } from "zod";
 mongoose.connect(config.DB_URL);
 
 export type tUser={
@@ -21,7 +20,7 @@ export type tTag={
 }
 
 const tagSchema=new Schema<tTag>({
-    title: {type: String, required: true}
+    title: {type: String, unique: true}
 })
 
 export const TagModel=mongoose.model("Tag", tagSchema)
@@ -30,7 +29,7 @@ export type tContent={
     link: string;
     type: "document" | "audio" | "image" | "link";
     title: string; 
-    tags: mongoose.Types.ObjectId[];
+    tags?: string[];
     userId: mongoose.Types.ObjectId;
 }
 
@@ -38,7 +37,7 @@ const contentSchema=new Schema<tContent>({
     link: String,
     type: {type: String, required: true},
     title: String,
-    tags: [{type: mongoose.Types.ObjectId, ref: 'Tag'}],
+    tags: [{type: String, }],
     userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 })
 
