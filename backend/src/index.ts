@@ -81,7 +81,7 @@ app.post("/api/v1/signin", async(req: Request, res: Response)=>{
     
 })
 
-app.get("api/v1/tags", auth, async(req: Request, res: Response)=>{
+app.get("/api/v1/tags", auth, async(req: Request, res: Response)=>{
     try{
         const tags=await TagModel.find().select("title")
         res.json(tags)
