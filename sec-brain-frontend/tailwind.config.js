@@ -6,7 +6,20 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        gray:{
+          100:"#FFFFFF",
+          200: "#F9FBFC",
+          600: "#70767C"
+        },
+        purple:{
+          200: "#DEE8FE",
+          500:"#4741AB",
+          600: "#5046E4"
+        }
+      }
+    },
   },
   plugins: [],
 }
