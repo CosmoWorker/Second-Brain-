@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 import { Schema } from "mongoose";
 import config from "./config";
 mongoose.connect(config.DB_URL);
@@ -27,7 +27,8 @@ export const TagModel=mongoose.model("Tag", tagSchema)
 
 export type tContent={
     link: string;
-    type: "document" | "audio" | "image" | "link";
+    cloudinaryPublicId: string;
+    type: "file" | "link";
     title: string; 
     tags?: string[];
     userId: mongoose.Types.ObjectId;
@@ -35,6 +36,7 @@ export type tContent={
 
 const contentSchema=new Schema<tContent>({
     link: String,
+    cloudinaryPublicId: {type: String, required: true},
     type: {type: String, required: true},
     title: String,
     tags: [{type: String, }],

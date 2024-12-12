@@ -1,5 +1,6 @@
 import { DeleteIcon } from "../icons/Delete"
 import { DocumentIcon } from "../icons/Document"
+import { OpenIcon } from "../icons/Open";
 
 type CardProps={
     title: string;
@@ -27,22 +28,28 @@ export const Card=(props: CardProps)=>{
     return <div className="rounded-xl bg-white box-shadow-md border-[#E2E7E5] w-[300px] border m-5 px-4">
         <div className="flex justify-between items-center">
             <div className="flex items-center text-md gap-3 py-4">
-                <DocumentIcon/>
+                <div className="">
+                    <DocumentIcon/>
+                </div>
                 {props.title}
-                {/* <DeleteIcon/> */}
             </div>
-            <DeleteIcon/>
+            <div className="flex gap-2 mr-1">
+                <OpenIcon/>
+                <DeleteIcon/>
+            </div>
         </div>
-        {props.type==="youtube" && embedUrl ? (<iframe className="w-full rounded-lg" src={embedUrl} title="YouTube video player" 
-            frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerPolicy="strict-origin-when-cross-origin" allowFullScreen>
-            </iframe>): (
-                props.type==="youtube" && <div className="w-full rounded-lg h-48 items-center justify-center text-gray-600"></div>
-            )}
-        {props.type=="twitter" && <div className="w-full overflow-hidden">
-                <blockquote className="twitter-tweet">
-                    <a href={props.link.replace("x.com", "twitter.com")} target="_blank"></a> 
-                </blockquote>
-            </div>}
+        <div>
+            {props.type==="youtube" && embedUrl ? (<iframe className="w-full rounded-lg" src={embedUrl} title="YouTube video player" 
+                frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin" allowFullScreen>
+                </iframe>): (
+                    props.type==="youtube" && <div className="w-full rounded-lg h-48 items-center justify-center text-gray-600"></div>
+                )}
+            {props.type=="twitter" && <div className="w-full overflow-hidden">
+                    <blockquote className="twitter-tweet">
+                        <a href={props.link.replace("x.com", "twitter.com")} target="_blank"></a> 
+                    </blockquote>
+                </div>}
+        </div>
     </div>
 }

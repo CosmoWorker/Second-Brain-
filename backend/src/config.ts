@@ -1,13 +1,16 @@
-type config={
-    PORT: number;
-    DB_URL: string;
-    SECRET_KEY: string;
+import dotenv from 'dotenv'
+dotenv.config()
+
+type config=Record<'PORT'|'DB_URL'|'SECRET_KEY', string>
+
+if (!process.env.PORT || !process.env.DB_URL || !process.env.SECRET_KEY){
+    throw new Error("Environment variables might be empty")
 }
 
 const config: config={
-    PORT: 3000,
-    DB_URL: "mongodb+srv://admin:0123@vt-cluster.kw8dq.mongodb.net/second-brain",
-    SECRET_KEY: "2brain!"
+    PORT: process.env.PORT,
+    DB_URL: process.env.DB_URL,
+    SECRET_KEY: process.env.SECRET_KEY
 }
 
 export default config;
